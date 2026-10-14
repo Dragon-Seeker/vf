@@ -35,3 +35,32 @@ export interface Config {
 }
 
 export declare const decompile: (names: string | string[], config?: Config) => Promise<Record<string, string>>;
+
+/** [bytecode offset, 1-based line] pairs, sorted by offset. */
+export type OffsetLinePairs = [number, number][];
+
+export interface MethodMapping {
+    /** Internal name of the declaring class; differs from the output key for inner, anonymous and local classes. */
+    owner: string;
+    name: string;
+    descriptor: string;
+    /**
+     * Offset -> line in `source`, as Vineflower tracks it: every byte of a mapped instruction, operand bytes
+     * included. Unmapped offsets are absent, so resolve them via the nearest mapped offset in the same basic block.
+     */
+    lines: OffsetLinePairs;
+    /** Always null here; kept for the same shape as the CFR port, which fills it from the LineNumberTable. */
+    original: OffsetLinePairs | null;
+}
+
+export interface MappedOutput {
+    source: string;
+    methods: MethodMapping[];
+}
+
+/**
+ * Decompiles with `bytecode-source-mapping` forced on, returning output keyed by class name, each with its
+ * methods' bytecode offset -> line tables. `kt-enable` defaults to "0", as the Kotlin plugin's offsets don't
+ * match the class file; set it in `options` to override.
+ */
+export declare const decompileMapped: (names: string | string[], config?: Config) => Promise<Record<string, MappedOutput>>;

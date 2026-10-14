@@ -1,0 +1,57 @@
+diff --git a/ContextUnit.java b/ContextUnitPatch.java
+index 89a245c..be390b0 100644
+--- a/ContextUnit.java
++++ b/ContextUnitPatch.java
+@@ -4,6 +4,7 @@ package org.jetbrains.java.decompiler.struct;
+ import org.jetbrains.annotations.Nullable;
+ import org.jetbrains.java.decompiler.main.ClassWriter;
+ import org.jetbrains.java.decompiler.main.DecompilerContext;
++import org.jetbrains.java.decompiler.main.collectors.BytecodeSourceMapperPatch; // patch
+ import org.jetbrains.java.decompiler.main.decompiler.CancelationManager;
+ import org.jetbrains.java.decompiler.main.extern.IContextSource;
+ import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
+@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.function.Function;
+ import java.util.stream.Collectors;
+ 
+-public class ContextUnit {
++public class ContextUnitPatch { // patch
+   private static AtomicInteger THREAD_ID = new AtomicInteger(0);
+   private final IContextSource source;
+   private final boolean own;
+@@ -36,7 +37,8 @@ public class ContextUnit {
+   private List<IContextSource.Entry> otherEntries = List.of();
+   private List<IContextSource> childContexts = List.of();
+ 
+-  public ContextUnit(IContextSource source, boolean own, boolean root, IResultSaver resultSaver, IDecompiledData decompiledData) {
++  public ContextUnitPatch(IContextSource source, // patch
++                          boolean own, boolean root, IResultSaver resultSaver, IDecompiledData decompiledData) {
+     this.source = source;
+     this.own = own;
+     this.root = root;
+@@ -221,6 +223,7 @@ public class ContextUnit {
+         classCtx.classContent = decompiledData.getClassContent(classCtx.cl);
+         if (DecompilerContext.getOption(IFernflowerPreferences.BYTECODE_SOURCE_MAPPING)) {
+           classCtx.mapping = DecompilerContext.getBytecodeSourceMapper().getOriginalLinesMapping();
++          classCtx.offsets = ((BytecodeSourceMapperPatch) (Object) DecompilerContext.getBytecodeSourceMapper()).getOffsetMapping(); // patch
+         }
+       }));
+     }
+@@ -234,6 +237,9 @@ public class ContextUnit {
+     for (final ClassContext cls : toDump) {
+       if (cls.classContent != null) {
+         sink.acceptClass(cls.cl.qualifiedName, cls.entryName, cls.classContent, cls.mapping);
++        if (cls.offsets != null && sink instanceof run.slicer.vf.impl.BytecodeMappingSink mappingSink) { // patch
++          mappingSink.acceptOffsetMapping(cls.cl.qualifiedName, cls.offsets); // patch
++        } // patch
+       }
+     }
+ 
+@@ -307,6 +313,7 @@ public class ContextUnit {
+     private final String entryName;
+     String classContent;
+     int /* @Nullable */[] mapping;
++    Map<String, Map<String, Map<Integer, Integer>>> /* @Nullable */ offsets; // patch
+     private Throwable pendingError;
+ 
+     ClassContext(final StructClass cl, final String entryName) {

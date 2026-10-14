@@ -37,6 +37,32 @@ const result = await decompile(["your/package/HelloWorld", /* you can decompile 
 console.log(result["your/package/HelloWorld"]);
 ```
 
+## Bytecode offset mapping
+
+`decompileMapped` takes the same arguments and also returns, for every method Vineflower printed, which output
+line each bytecode offset was written to. That lets you link a bytecode location (class, method, offset) to the
+decompiled source.
+
+```js
+const { decompileMapped } = require("./vf.js");
+
+const result = await decompileMapped(["your/package/HelloWorld"], { source, resources });
+const { source: code, methods } = result["your/package/HelloWorld"];
+// methods: [{ owner: "your/package/HelloWorld$Inner", name: "run", descriptor: "()V",
+//             lines: [[0, 12], [1, 12], [2, 12], [5, 13], ...], original: null }, ...]
+```
+
+- `lines` are `[offset, 1-based line]` pairs, sorted by offset. Vineflower lists every byte of a mapped
+  instruction, operand bytes included; offsets it didn't map are absent.
+- `owner` is the class that declares the method, which differs from the output key for inner, anonymous and
+  local classes.
+- `bytecode-source-mapping` is forced on. `kt-enable` defaults to `"0"`: the Kotlin plugin's offsets don't
+  match the class file (offsets under abstract methods, past the end of a method, mid-instruction). Set it in
+  `options` to override.
+- The table is Vineflower's own (`BytecodeSourceMapper`, normally only printed in unit test mode). It's
+  handed to the output sink by `ContextUnitPatch` and read out by `BytecodeSourceMapperPatch` (see the
+  `.diff` files next to them), so unit test mode stays off.
+
 ## Notes
 
 This project leverages a dependency analyzer to determine which classes are needed for decompilation and pre-fetch them before decompilation begins.

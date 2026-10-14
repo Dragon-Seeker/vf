@@ -1,0 +1,38 @@
+diff --git a/BytecodeSourceMapper.java b/BytecodeSourceMapperPatch.java
+index eaec24d..a8b9436 100644
+--- a/BytecodeSourceMapper.java
++++ b/BytecodeSourceMapperPatch.java
+@@ -7,7 +7,7 @@ import org.jetbrains.java.decompiler.util.TextBuffer;
+ import java.util.*;
+ import java.util.Map.Entry;
+ 
+-public class BytecodeSourceMapper {
++public class BytecodeSourceMapperPatch { // patch
+   private int offset_total;
+ 
+   // class, method, bytecode offset, source line
+@@ -88,6 +88,24 @@ public class BytecodeSourceMapper {
+     }
+   }
+ 
++  /**
++   * patch: the offset table as Vineflower dumps it in unit test mode (class -> "name descriptor" -> bytecode offset
++   * -> 0-based output line), with the class header lines already added, so callers don't need unit test mode.
++   */
++  public Map<String, Map<String, Map<Integer, Integer>>> getOffsetMapping() { // patch
++    Map<String, Map<String, Map<Integer, Integer>>> res = new LinkedHashMap<>();
++    for (Entry<String, Map<String, Map<Integer, Integer>>> class_entry : mapping.entrySet()) {
++      Map<String, Map<Integer, Integer>> class_mapping = res.computeIfAbsent(class_entry.getKey(), k -> new LinkedHashMap<>());
++      for (Entry<String, Map<Integer, Integer>> method_entry : class_entry.getValue().entrySet()) {
++        Map<Integer, Integer> method_mapping = class_mapping.computeIfAbsent(method_entry.getKey(), k -> new TreeMap<>());
++        for (Entry<Integer, Integer> entry : method_entry.getValue().entrySet()) {
++          method_mapping.put(entry.getKey(), entry.getValue() + offset_total);
++        }
++      }
++    }
++    return res;
++  }
++
+   public void addTotalOffset(int offset_total) {
+     this.offset_total += offset_total;
+   }

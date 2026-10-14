@@ -30,5 +30,10 @@ public class VFSubstitutionPolicy extends SimpleSubstitutionPolicy {
         // manual source patches to the decompiler
         sink.selectClasses(named("org.jetbrains.java.decompiler.main.rels.ClassWrapper"))
                 .simpleNameSuffix("Patch");
+        // bytecode offset -> output line table for decompileMapped
+        sink.selectClasses(named("org.jetbrains.java.decompiler.main.collectors.BytecodeSourceMapper"))
+                .simpleNameSuffix("Patch");
+        sink.selectClasses(named("org.jetbrains.java.decompiler.struct.ContextUnit"))
+                .simpleNameSuffix("Patch");
     }
 }
