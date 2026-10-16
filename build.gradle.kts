@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.teavm) // order matters?
 }
 
-val thisVersion = "0.6.4"
+val thisVersion = "0.7.0"
 
 group = "run.slicer"
 version = "$thisVersion-${libs.versions.vineflower.get()}"
@@ -90,7 +90,7 @@ tasks {
             file("dist/package.json").writeText(
                 """
                     {
-                      "name": "@run-slicer/vf",
+                      "name": "@dragon-seeker/vf",
                       "version": "${project.version}",
                       "description": "A JavaScript port of the Vineflower decompiler (https://github.com/Vineflower/vineflower).",
                       "main": "vf.js",
@@ -102,7 +102,11 @@ tasks {
                         "vf",
                         "vineflower"
                       ],
-                      "author": "run-slicer",
+                      "author": "dragon-seeker (fork of run-slicer/vf)",
+                      "repository": {
+                        "type": "git",
+                        "url": "git+https://github.com/Dragon-Seeker/vf.git"
+                      },
                       "license": "Apache License 2.0, MIT"
                     }
                 """.trimIndent()
